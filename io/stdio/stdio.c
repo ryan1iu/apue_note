@@ -123,7 +123,9 @@ void _fread(int argc, char **argv)
 
 void _fseek_ftell(int argc, char **argv)
 {
+	FILE *fps = NULL;
 	/* 使用fseek和ftell来判断一个文件的大小 */
+#if 0
 	FILE *fps = fopen(argv[1], "r");
 	if (fps == NULL) {
 		LOG_ERROR
@@ -134,6 +136,7 @@ void _fseek_ftell(int argc, char **argv)
 	printf("文件字节数：%ld\n", ftell(fps));
 	fclose(fps);
 
+#endif
 	/* 使用fseek和ftell创建一个空洞文件（文件内容为\0的文件） */
 	fps = fopen("空洞文件", "w");
 	fseek(fps, 1 << 30, SEEK_SET);
@@ -177,7 +180,7 @@ int main(int argc, char **argv)
 	// _fgetc(argc, argv);
 	// _fgets(argc, argv);
 	// _fread(argc, argv);
-	// _fseek_ftell(argc, argv);
-	_tmpfile();
+	_fseek_ftell(argc, argv);
+	// _tmpfile();
 	return 0;
 }
