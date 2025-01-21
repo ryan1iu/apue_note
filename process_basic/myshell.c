@@ -1,0 +1,71 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+#define CMDSIZE 20
+struct cmd_st {
+	int argc;
+	char **argv;
+};
+void promot()
+{
+	printf("mysh~> ");
+}
+
+static void parse(char *linebuf, struct cmd_st *cmd)
+{
+	char *token;
+	int i = 0;
+	token = strtok(linebuf, " \n\t");
+	while (token != NULL) {
+		if (i > CMDSIZE) {
+			fprintf(stderr, "The command has too many arguments\n");
+			return;
+		}
+		cmd->argv[i] = malloc(strlen(token) + 1);
+		strncpy(cmd->argv[i], token, strlen(token) + 1);
+		i++;
+		token = strtok(NULL, " \n\t");
+	}
+	cmd->argc = i;
+}
+
+int main()
+{
+	pid_t pid;
+	char *linebuf;
+	unsigned long line_length;
+	struct cmd_st cmd;
+	cmd.argv = malloc(sizeof(cmd.argv) * CMDSIZE);
+	while (1) {
+		promot();
+		if (getline(&linebuf, &line_length, stdin) < 0)
+			break;
+
+		/* 解析外部命令 */
+		parse(linebuf, &cmd);
+
+		/* 创建子进程 */
+		pid = fork();
+		if (pid < 0) {
+			perror("fork");
+			exit(1);
+		}
+		if (pid == 0) {
+			execvp(cmd.argv[0], cmd.argv);
+			perror("execvp");
+			exit(1);
+		}
+
+		/* 释放cmd_st堆内存 */
+		for (int i = 0; i < cmd.argc; i++) {
+			free(cmd.argv[i]);
+		}
+		wait(NULL);
+	}
+	free(cmd.argv);
+
+	exit(0);
+}
