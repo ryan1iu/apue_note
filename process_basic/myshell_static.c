@@ -11,12 +11,12 @@ struct cmd_st {
 };
 void promot()
 {
-	printf("$mysh~> ");
+	printf("\033[1;32mmysh > \033[0m");
 }
 
 static void parse(char *linebuf, struct cmd_st *cmd)
 {
-	char *token;
+	char *token = NULL;
 	int i = 0;
 	token = strtok(linebuf, " \n\t");
 	while (token != NULL) {
@@ -24,8 +24,9 @@ static void parse(char *linebuf, struct cmd_st *cmd)
 			fprintf(stderr, "The command has too many arguments\n");
 			return;
 		}
-		cmd->argv[i] = malloc(strlen(token) + 1);
-		strncpy(cmd->argv[i], token, strlen(token) + 1);
+		// cmd->argv[i] = malloc(strlen(token) + 1);
+		// strncpy(cmd->argv[i], token, strlen(token) + 1);
+		cmd->argv[i] = strdup(token);
 		i++;
 		token = strtok(NULL, " \n\t");
 	}
@@ -35,12 +36,13 @@ static void parse(char *linebuf, struct cmd_st *cmd)
 int main()
 {
 	pid_t pid;
-	char *linebuf;
-	unsigned long line_length;
+	char *linebuf = NULL;
+	unsigned long line_length = 0;
 	struct cmd_st cmd;
-	cmd.argv = malloc(sizeof(cmd.argv) * CMDSIZE);
+	cmd.argv = malloc(sizeof(char *) * CMDSIZE);
 	while (1) {
 		promot();
+		sleep(1);
 		if (getline(&linebuf, &line_length, stdin) < 0)
 			break;
 
@@ -54,7 +56,7 @@ int main()
 			exit(1);
 		}
 		if (pid == 0) {
-			execvp(cmd.argv[0], cmd.argv);
+			execv(cmd.argv[0], cmd.argv);
 			perror("execvp");
 			exit(1);
 		}

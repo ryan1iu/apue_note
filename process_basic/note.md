@@ -89,7 +89,12 @@
         前台进程组可以接收来自终端的输入
     setsid()
         使进程脱离控制终端
+    getpgrp()
+    getpgid()
+    单实例守护进程: 锁文件/var/run/name.pid
 
 ## 系统日志
-
-
+    syslogd系统日志
+    openlog()
+    syslog()
+    closelog()
