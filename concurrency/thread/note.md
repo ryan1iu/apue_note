@@ -59,6 +59,7 @@ pthread_t: POSIX标准下的线程标识，但是这个类型到底是什么取�
 ## 线程同步
 
 - 互斥量
+
   - `pthread_mutex_t;`
   - `pthread_mutex_init()`
   - `pthread_mutex_destory()`
@@ -66,13 +67,54 @@ pthread_t: POSIX标准下的线程标识，但是这个类型到底是什么取�
   - `pthread_mutex_trylock()`
   - `pthread_mutex_trylock()`
   - `pthread_mutex_unlock()`
+  - `pthread_once()` 用于加载一个模块仅一次
+
+- [条件变量](./条件变量.md)
+
+  - `pthread_cond_t`
+  - `pthread_cond_init()`
+  - `pthread_cond_destory()`
+  - `pthread_cond_signal()`
+  - `pthread_cond_broadcast()`
+  - `pthread_cond_wait()`
+  - `pthread_cond_timewait()`
+
+- 信号量
+- 读写锁
 
 ## 线程属性
 
-线程同步的属性
+pthread_attr函数族
+
+## 线程同步的属性
+
+- 互斥量的属性
+  pthread_mutexattr函数族
+
+  - pthread_mutexattr_init()
+  - pthread_mutex_attr_destory()
+  - pthread_mutexattr_setpshared()
+  - pthread_mutexattr_getpshared()
+  - clone()
+  - pthread_mutexattr_gettype()
+  - pthread_mutexattr_settype()
+
+- 条件变量
+  - pthread_condattr_init()
+  - ...
 
 ## 可重入
 
+多线程中的IO处理库函数默认已经支持并发，如果不支持并发会在名字中体现出来：在函数后加一个unlocked后缀
+
 ## 线程和信号的关系
 
-线程与fork
+实际上，每个线程分别拥有一个mask和pending，进程用有一个pending，在从内核返回用户态反而过程中，扎回哪个线程，哪个线程负责处理所属进程的pending和本线程的penging，也就是要按位与两次
+
+- pthread_sigmask()
+- sigwait()
+- pthread_kill()
+
+## 线程与fork
+
+POSIX原语规定新的进程只包含调用它的那个线程

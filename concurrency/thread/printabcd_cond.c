@@ -1,5 +1,5 @@
-/* 创建四个进程，按照abcd的顺序循环打印 
- * 使用互斥链
+/* 创建四个进程，按照abcd的顺序循环打印
+ * 使用条件变量
  * */
 
 #include <stdio.h>
@@ -8,7 +8,8 @@
 #include <pthread.h>
 #include <unistd.h>
 
-static pthread_mutex_t mutex[4];
+static pthread_mutex_t mutex;
+static pthread_cond_t cond[4];
 
 static void *func(void *ch)
 {
@@ -16,9 +17,9 @@ static void *func(void *ch)
 	char chv = 'a' + i;
 
 	while (1) {
-		pthread_mutex_lock(mutex + i);
+		pthread_cond_wait(cond + i, &mutex);
 		write(1, &chv, 1);
-		pthread_mutex_unlock(mutex + (i + 1) % 4);
+		pthread_cond_signal(cond + (i + 1) % 4);
 	}
 
 	pthread_exit(NULL);
@@ -31,9 +32,11 @@ int main()
 	int data[4];
 
 	// 初始化互斥量
+	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_lock(&mutex);
+
 	for (i = 0; i < 4; ++i) {
-		pthread_mutex_init(mutex + i, NULL);
-		pthread_mutex_lock(mutex + i); // 先全部锁住
+		pthread_cond_init(cond + i, NULL);
 	}
 
 	// 创建4个线程
@@ -45,8 +48,7 @@ int main()
 		}
 	}
 
-	pthread_mutex_unlock(mutex + 0);
-
+	pthread_cond_signal(cond);
 	// 线程收尸
 	for (int j = 0; j < i; ++j) {
 		int err = pthread_join(tid[j], NULL);
@@ -56,8 +58,9 @@ int main()
 	}
 
 	// 销毁互斥量
+	pthread_mutex_destroy(&mutex);
 	for (int i = 0; i < 4; ++i) {
-		int err = pthread_mutex_destroy(mutex + i);
+		int err = pthread_cond_destroy(cond + i);
 		if (err < 0) {
 			fprintf(stderr, "%s", strerror(err));
 		}
