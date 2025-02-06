@@ -7,6 +7,7 @@
 #include <string.h>
 #include <sys/time.h>
 
+// 隐藏结构体内容，对外暴露为bucket_t
 struct bucket_st {
 	int volatile token; // 持有token数
 	int volatile rate; // 每秒钟增加的token数
@@ -14,16 +15,16 @@ struct bucket_st {
 	int index; // 存储桶下标
 };
 
-static struct bucket_st *array[BUCKET_MAX_SIZE];
+static struct bucket_st *job[BUCKET_MAX_SIZE];
 static int load_flag;
 static struct sigaction old_act;
 static struct itimerval old_timer;
 
-static int find_low_index()
+static int find_low_index_unlock()
 {
 	int i;
 	for (i = 0; i < BUCKET_MAX_SIZE; i++) {
-		if (array[i] == NULL) {
+		if (job[i] == NULL) {
 			break;
 		}
 	}
@@ -34,18 +35,17 @@ static int find_low_index()
 	}
 }
 
-void alrm_handler(int sig_num, siginfo_t *act, void *p)
+void token_produce_thd(int sig_num, siginfo_t *act, void *p)
 {
 	if (act->si_code != SI_KERNEL) {
 		printf("not kernel\n");
 		return; // 如果信号不是内核发出的，忽略
 	}
 	for (int i = 0; i < BUCKET_MAX_SIZE; i++) {
-		if (array[i] != NULL) {
-			int tokenadd = array[i]->token + array[i]->rate;
-			array[i]->token = tokenadd > array[i]->size ?
-						  array[i]->size :
-						  tokenadd;
+		if (job[i] != NULL) {
+			int tokenadd = job[i]->token + job[i]->rate;
+			job[i]->token = tokenadd > job[i]->size ? job[i]->size :
+								  tokenadd;
 		}
 	}
 }
@@ -55,8 +55,8 @@ void unload_module()
 	// 恢复定时器
 	setitimer(ITIMER_REAL, &old_timer, NULL);
 	for (int i = 0; i < BUCKET_MAX_SIZE; i++) {
-		if (array[i] != NULL) {
-			free(array[i]);
+		if (job[i] != NULL) {
+			free(job[i]);
 		}
 	}
 	// 恢复默认处理函数
@@ -70,7 +70,7 @@ void load_module()
 	struct sigaction act;
 	sigset_t set;
 	sigemptyset(&set);
-	act.sa_sigaction = alrm_handler;
+	act.sa_sigaction = token_produce_thd;
 	act.sa_mask = set;
 	act.sa_flags =
 		SA_SIGINFO; // 设置为SA_SIGINFO标明使用sa_sigaction指定的处理函数
@@ -95,7 +95,7 @@ int bucket_init(bucket_t **bucket, int rate, int size)
 	}
 	int low_index;
 	struct bucket_st *buk;
-	low_index = find_low_index();
+	low_index = find_low_index_unlock();
 	if (low_index == -1) {
 		return -1;
 	}
@@ -103,7 +103,7 @@ int bucket_init(bucket_t **bucket, int rate, int size)
 	if (buk == NULL) {
 		return -ENOMEM;
 	}
-	array[low_index] = buk;
+	job[low_index] = buk;
 	buk->token = 0;
 	buk->rate = rate;
 	buk->size = size;
@@ -141,7 +141,7 @@ int bucket_return(bucket_t *bucket, int token)
 int bucket_destory(bucket_t *bucket)
 {
 	struct bucket_st *bk = bucket;
-	array[bk->index] = NULL;
+	job[bk->index] = NULL;
 	free(bucket);
 	bucket = NULL;
 	return 0;
