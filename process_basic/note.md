@@ -1,5 +1,7 @@
 # 进程基本知识
+
 ## 进程的终止 背诵
+
     正常终止
         从main函数返回
         调用exit 返回值从-128到127
@@ -14,6 +16,7 @@
         最后一个线程对其取消请求做出响应
 
 ## 进程标识符pid
+
     pid_t
     命令ps
     进程号是顺次向下增长
@@ -21,6 +24,7 @@
     getppid()
 
 ## 进程的产生
+
     fork()
         fork后父子进程的区别
             frok的返回值不同
@@ -32,11 +36,13 @@
     vfork() 基本废弃
 
 ## 进程的消亡与释放资源
+
     wait()
     waitpid()
     waitid()
 
 ## exec()函数族的使用
+
     execl()
     execlp()
     execle()
@@ -44,6 +50,7 @@
     execvp()
 
 ## 用户权限和组权限
+
     u+s
     g+s
         real
@@ -68,19 +75,24 @@
     setegid()
 
 ## 观摩课：解释器文件
+
     #!/bin/解释器
 
 ## system()
+
     相当于 execl("/bin/sh", "sh", "-c", command, (char *) NULL);
 
 ## 进程会计
+
     acct() 方言
     当进程结束时会在指定的文件中写入进程信息
 
 ## 进程时间
+
     times()
 
 ## 守护进程
+
     会话session，sid
     终端
         一个会话绑定一个终端
@@ -94,6 +106,7 @@
     单实例守护进程: 锁文件/var/run/name.pid
 
 ## 系统日志
+
     syslogd系统日志
     openlog()
     syslog()

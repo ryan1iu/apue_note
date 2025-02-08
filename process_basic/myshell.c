@@ -24,8 +24,9 @@ static void parse(char *linebuf, struct cmd_st *cmd)
 			fprintf(stderr, "The command has too many arguments\n");
 			return;
 		}
-		cmd->argv[i] = malloc(strlen(token) + 1);
-		strncpy(cmd->argv[i], token, strlen(token) + 1);
+		// cmd->argv[i] = malloc(strlen(token) + 1);
+		// strncpy(cmd->argv[i], token, strlen(token) + 1);
+		cmd->argv[i] = strdup(token);
 		i++;
 		token = strtok(NULL, " \n\t");
 	}
