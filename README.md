@@ -1,6 +1,6 @@
 # APUE学习笔记
 
-B站李秀芹老师[APUE课程](https://www.bilibili.com/video/BV18p4y167Md/?p=235&share_source=copy_web&vd_source=fe278e21e704f453f957ae98c8f51bfd)的学习笔记
+B站李慧芹老师[APUE课程](https://www.bilibili.com/video/BV18p4y167Md/?p=235&share_source=copy_web&vd_source=fe278e21e704f453f957ae98c8f51bfd)的学习笔记
 
 ## 参考指南
 
