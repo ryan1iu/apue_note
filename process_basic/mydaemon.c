@@ -38,7 +38,7 @@ static int daemonize()
 		chdir("/");
 		return 0;
 	}
-	exit(0);
+	exit(0); // 父进程正常终止
 }
 int main()
 {
